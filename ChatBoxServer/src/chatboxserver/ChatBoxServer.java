@@ -5,12 +5,22 @@
  */
 package chatboxserver;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -52,13 +62,22 @@ public class ChatBoxServer {
                     switch (data[0]) {
                         case "join":
                             if (checkNickname(data[1], users)) {
-                                User u = new User(data[1], socket);
-                                u.start();
+                                User u = new User(data[1], socket, users);
+                                u.addListener(new ClientStatusListener() {
+                                    @Override
+                                    public void onStatusChange(String nickname) {
+                                        users.remove(nickname);
+                                    }
+                                });
                                 users.put(data[1], u);
+                                u.start();
                                 response = "server:connected";
                             } else {
                                 response = "server:nickname-error";
                             }
+                            break;
+                        default:
+                            response = data[0];
                             break;
                     }
                     dos.writeUTF(response);
@@ -79,4 +98,12 @@ public class ChatBoxServer {
         }
         return false;
     }
+
+
+
+//    private static Student Read(String datoteka) throws IOException, ClassNotFoundException {
+//        ObjectInputStream stream = new ObjectInputStream(new FileInputStream(datoteka));
+//
+//        return (Student) stream.readObject();
+//    }
 }

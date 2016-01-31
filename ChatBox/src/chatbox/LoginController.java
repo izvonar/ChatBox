@@ -5,15 +5,22 @@
  */
 package chatbox;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -142,13 +149,36 @@ public class LoginController implements Initializable {
             public void onStatusChange(String status) {
                 updateStatusLabel(status);
                 if (status.equals("Connected!")) {
-                    messageBox("Connected!", "");
+                    //messageBox("Connected!", "");
+                    startMainWindow(connection.getClientSocket());
                 } else if (status.equals("Nickname already in use!")) {
                     startAnimation(loginError, 150);
                 }
             }
         });
         connection.start();
+    }
+
+    private void startMainWindow(Socket socket) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/mainWindow.fxml"), ResourceBundle.getBundle("resources/fontawesome"));
+                Stage stage = new Stage();
+                try {
+                    MainWindowController ctrl = new MainWindowController(socket, txtNick.getText());
+                    loader.setController(ctrl);
+                    Scene scene = new Scene((Parent) loader.load());
+                    stage.initStyle(StageStyle.UNDECORATED);
+                    stage.setTitle("ChatBox");
+                    stage.setScene(scene);
+                    stage.show();
+                    txtNick.getScene().getWindow().hide();
+                } catch (IOException ex) {
+                    Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
     }
 
     @FXML

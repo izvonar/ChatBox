@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" fx:id="anchorPane" prefHeight="352.0" prefWidth="449.0" styleClass="mainFxmlClass" stylesheets="@/css/login.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chatbox.LoginController">
+   <children>
+      <BorderPane fx:id="borderPane" layoutX="116.0" layoutY="105.0" prefHeight="450.0" prefWidth="500.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <top>
+            <GridPane>
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="111.0" minWidth="10.0" prefWidth="111.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="445.0" minWidth="10.0" prefWidth="389.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+               <children>
+                  <HBox alignment="TOP_RIGHT" prefHeight="28.0" prefWidth="500.0" BorderPane.alignment="CENTER" GridPane.columnIndex="1">
+                     <children>
+                        <Label fx:id="buttonMinimize" text="%fa.circle" visible="false">
+                           <padding>
+                              <Insets right="10.0" top="5.0" />
+                           </padding>
+                        </Label>
+                        <Label fx:id="buttonExit" text="%fa.circle">
+                           <padding>
+                              <Insets right="10.0" top="5.0" />
+                           </padding>
+                        </Label>
+                     </children>
+                  </HBox>
+                  <Text fontSmoothingType="LCD" strokeType="OUTSIDE" strokeWidth="0.0" text="ChatBox">
+                     <GridPane.margin>
+                        <Insets left="5.0" />
+                     </GridPane.margin>
+                     <font>
+                        <Font name="Segoe UI" size="12.0" />
+                     </font>
+                  </Text>
+               </children>
+            </GridPane>
+         </top>
+         <center>
+            <Pane maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="133.0" prefWidth="449.0" BorderPane.alignment="TOP_CENTER">
+               <children>
+                  <ImageView fitHeight="68.0" fitWidth="97.0" layoutX="322.0" layoutY="60.0" opacity="0.73" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../resources/box.png" />
+                     </image>
+                  </ImageView>
+                  <ImageView fx:id="textBubbleRight" fitHeight="65.0" fitWidth="52.0" layoutX="372.0" layoutY="14.0" opacity="0.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../resources/chat.png" />
+                     </image>
+                  </ImageView>
+                  <ImageView fitHeight="65.0" fitWidth="52.0" layoutX="296.0" layoutY="-46.0" pickOnBounds="true" preserveRatio="true" rotate="180.0" translateY="60.0" visible="false">
+                     <image>
+                        <Image url="@../resources/chat.png" />
+                     </image>
+                     <rotationAxis>
+                        <Point3D y="360.0" z="1.0" />
+                     </rotationAxis>
+                  </ImageView>
+                  <Label layoutX="59.0" layoutY="51.0" opacity="0.9" text="ChatBox">
+                     <font>
+                        <Font name="Segoe UI" size="69.0" />
+                     </font>
+                  </Label>
+               </children>
+            </Pane>
+         </center>
+         <bottom>
+            <GridPane prefHeight="189.0" prefWidth="500.0" BorderPane.alignment="CENTER">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+              </columnConstraints>
+              <rowConstraints>
+                  <RowConstraints maxHeight="120.0" minHeight="8.0" prefHeight="13.0" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="120.0" minHeight="10.0" prefHeight="51.0" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="194.0" minHeight="8.0" prefHeight="126.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <TextField fx:id="txtNick" maxHeight="32.0" maxWidth="220.0" promptText="Nickname..." GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+                  <Button fx:id="btnLogin" mnemonicParsing="false" onAction="#btnLogin" prefHeight="30.0" prefWidth="90.0" text="Login" textFill="WHITE" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="TOP">
+                     <GridPane.margin>
+                        <Insets top="5.0" />
+                     </GridPane.margin></Button>
+                  <Label fx:id="loginError" opacity="0.0" text="%fa.times" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
+                     <GridPane.margin>
+                        <Insets bottom="5.0" right="90.0" />
+                     </GridPane.margin>
+                  </Label>
+                  <Label fx:id="lblError" alignment="CENTER" GridPane.columnSpan="2" GridPane.halignment="LEFT">
+                     <GridPane.margin>
+                        <Insets left="115.0" />
+                     </GridPane.margin>
+                  </Label>
+               </children>
+            </GridPane>
+         </bottom>
+      </BorderPane>
+   </children>
+</AnchorPane>

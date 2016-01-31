@@ -1,0 +1,64 @@
+@font-face{
+    font-family: 'FontAwesome';
+    src: url('../resources/fontawesome-webfont.ttf');
+}
+
+.mainFxmlClass {
+    -fx-background-color: #F9F9F9;
+    -fx-font-family: 'FontAwesome';    
+    -fx-border-style: solid;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 0.0, 0.0);
+}
+
+#buttonExit{
+    -fx-font-size: 1.5em;
+    -fx-text-fill: FF040B;
+}
+
+#buttonExit:hover{
+    -fx-text-fill: FF4953;
+}
+
+#borderPane{
+    -fx-background-color: #333333;
+}
+
+#listUsers {
+    -fx-background-color: #333333; 
+    -fx-border-style: none;
+    -fx-border-width: 0;
+    -fx-background-insets: 0 ;
+
+    -fx-base: #1d1d1d;
+    -fx-control-inner-background: #333333;
+    /*-fx-background-color: #1d1d1d;*/
+    -fx-table-cell-border-color: transparent;
+    -fx-table-header-border-color: transparent;
+    -fx-padding: 5;
+}
+
+.gridUsers{
+    -fx-background-color: #333333;
+    -fx-border-color: transparent;
+    /*-fx-base: #1d1d1d;*/
+    /*-fx-control-inner-background: #1d1d1d;*/
+    /*-fx-background-color: #1d1d1d;*/
+    /*    -fx-table-cell-border-color: transparent;
+        -fx-table-header-border-color: transparent;*/
+    /*-fx-padding: 5;*/
+}
+
+.controlBox{
+    -fx-background-color: #F9F9F9;
+}
+
+.gridChat{
+    -fx-background-color: #F9F9F9;
+}
+
+.scrollPane{
+    -fx-background: #F9F9F9;
+    -fx-background-color: transparent;
+}

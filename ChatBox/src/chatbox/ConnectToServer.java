@@ -23,7 +23,7 @@ public class ConnectToServer extends Thread {
     private int port = 1234;
     private String address = "localhost";
     private String nickname;
-    Socket clientSocket;
+    private Socket clientSocket;
     private List<StatusChangeListener> listeners = new ArrayList();
 
     public ConnectToServer(String nickname) {
@@ -33,15 +33,15 @@ public class ConnectToServer extends Thread {
     public void run() {
 
         try {
-            Socket cs = new Socket(address, port);
+            clientSocket = new Socket(address, port);
             System.out.println("Connecting...");
             DataInputStream dis;
             DataOutputStream dos;
-            if (cs.isConnected()) {
-                System.out.println(cs.getInetAddress().getHostName());
+            if (clientSocket.isConnected()) {
+                System.out.println(clientSocket.getInetAddress().getHostName());
 
-                dis = new DataInputStream(cs.getInputStream());
-                dos = new DataOutputStream(cs.getOutputStream());
+                dis = new DataInputStream(clientSocket.getInputStream());
+                dos = new DataOutputStream(clientSocket.getOutputStream());
 
                 dos.writeUTF("join:" + nickname);
                 String response = dis.readUTF();
@@ -69,6 +69,14 @@ public class ConnectToServer extends Thread {
         if (listener != null) {
             listeners.add(listener);
         }
+    }
+
+    public Socket getClientSocket() {
+        return clientSocket;
+    }
+
+    public void setClientSocket(Socket clientSocket) {
+        this.clientSocket = clientSocket;
     }
 
 }
