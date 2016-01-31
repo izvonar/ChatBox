@@ -5,14 +5,8 @@
  */
 package chatbox;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -25,6 +19,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -66,40 +62,37 @@ public class LoginController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        borderPane.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                originX = event.getSceneX();
-                originY = event.getSceneY();
-                borderPane.requestFocus();
-            }
+        borderPane.setOnMousePressed((MouseEvent event) -> {
+            originX = event.getSceneX();
+            originY = event.getSceneY();
+            borderPane.requestFocus();
         });
 
-        borderPane.setOnMouseDragged(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                Stage primaryStage = (Stage) borderPane.getScene().getWindow();
-                double xD = event.getScreenX() - originX;
-                double yD = event.getScreenY() - originY;
-                primaryStage.setX(xD);
-                primaryStage.setY(yD);
-            }
+        borderPane.setOnMouseDragged((MouseEvent event) -> {
+            Stage primaryStage = (Stage) borderPane.getScene().getWindow();
+            double xD = event.getScreenX() - originX;
+            double yD = event.getScreenY() - originY;
+            primaryStage.setX(xD);
+            primaryStage.setY(yD);
         });
 
-        buttonExit.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                Platform.exit();
-            }
+        buttonExit.setOnMousePressed((MouseEvent event) -> {
+            Platform.exit();
         });
 
-        buttonMinimize.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                Stage primaryStage = (Stage) borderPane.getScene().getWindow();
+        buttonMinimize.setOnMousePressed((MouseEvent event) -> {
+            Stage primaryStage = (Stage) borderPane.getScene().getWindow();
 
-                //primaryStage.setIconified(true);
-                primaryStage.initStyle(StageStyle.DECORATED);
+            //primaryStage.setIconified(true);
+            primaryStage.initStyle(StageStyle.DECORATED);
+        });
+
+        anchorPane.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                if (event.getCode() == KeyCode.ENTER) {
+                    startConnection();
+                }
             }
         });
 
@@ -108,41 +101,58 @@ public class LoginController implements Initializable {
     }
 
     private void startAnimation(Node node, double duration) {
+        loginError.setVisible(true);
         FadeTransition fadeTransition = new FadeTransition(Duration.millis(duration), node);
         fadeTransition.setFromValue(0.0);
         fadeTransition.setToValue(1.0);
         fadeTransition.play();
     }
 
-    @FXML
-    void btnLogin(ActionEvent event) {
+    private void updateStatusLabel(String message) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                lblError.setText(message);
+            }
+        });
+    }
 
-        try {
-            Socket cs = new Socket("localhost", 1234);
+    private void messageBox(String title, String message) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                Alert a = new Alert(Alert.AlertType.CONFIRMATION);
+                a.setTitle(title);
+                a.setContentText(message);
+                a.showAndWait();
+            }
+        });
+    }
 
-            DataInputStream dis;
-            DataOutputStream dos;
-
-            if (cs.isConnected()) {
-                dis = new DataInputStream(cs.getInputStream());
-                dos = new DataOutputStream(cs.getOutputStream());
-
-                dos.writeUTF("join:" + txtNick.getText());
-
-                String response = dis.readUTF();
-                System.out.println("SERVER: " + response);
-
-                if (response.equals("server:nickname-error")) {
-                    lblError.setText("Nickname already in use!");
+    private void startConnection() {
+        updateStatusLabel("");
+        loginError.setVisible(false);
+        if (txtNick.getText().equals("")) {
+            updateStatusLabel("Please enter your nickname!");
+            return;
+        }
+        ConnectToServer connection = new ConnectToServer(txtNick.getText());
+        connection.addListener(new StatusChangeListener() {
+            @Override
+            public void onStatusChange(String status) {
+                updateStatusLabel(status);
+                if (status.equals("Connected!")) {
+                    messageBox("Connected!", "");
+                } else if (status.equals("Nickname already in use!")) {
                     startAnimation(loginError, 150);
-                } else {
-                    Alert a = new Alert(Alert.AlertType.CONFIRMATION);
-                    a.setTitle("Connected");
-                    a.showAndWait();
                 }
             }
-        } catch (IOException ex) {
-            Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        });
+        connection.start();
+    }
+
+    @FXML
+    void btnLogin(ActionEvent event) {
+        startConnection();
     }
 }

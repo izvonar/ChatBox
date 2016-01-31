@@ -12,6 +12,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -63,9 +65,10 @@ public class ChatBoxServer {
                     System.out.println(" ->SERVER: " + response);
                 }
             } catch (IOException ex) {
-                System.out.println("Server error: " + ex.getMessage());
+                System.out.println("Server IOException: " + ex.getMessage());
             } catch (Exception ex) {
-                System.out.println("Server error: " + ex.getMessage());
+                System.out.println("Server Exception: " + ex.getMessage());
+                Logger.getLogger(ChatBoxServer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
