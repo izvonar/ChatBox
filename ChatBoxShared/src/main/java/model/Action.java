@@ -1,5 +1,5 @@
 package model;
 
 public enum Action {
-    UserJoin,UserDisconnect,UserConnected,NicknameTaken,ServerOffline
+    UserJoin,UserDisconnect,UserConnected,NicknameTaken,ServerOffline,GlobalMessage
 }

@@ -34,4 +34,34 @@ public class Data {
         String serialized = Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
         return serialized;
     }
+
+    public static Message readMessage(String input)
+    {
+        Object o = null;
+        try {
+            byte[] data = Base64.getDecoder().decode(input);
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
+            o = ois.readObject();
+            ois.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        Message message = (Message) o;
+        return  message;
+    }
+
+    public static String writeMessage(Message message) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try {
+            ObjectOutputStream stream = new ObjectOutputStream(byteArrayOutputStream);
+            stream.writeObject(message);
+            stream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String serialized = Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
+        return serialized;
+    }
 }

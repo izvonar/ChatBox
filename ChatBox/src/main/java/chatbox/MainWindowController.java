@@ -42,6 +42,9 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import model.Action;
+import model.Data;
+import model.Message;
+import model.User;
 
 
 public class MainWindowController implements Initializable {
@@ -78,15 +81,15 @@ public class MainWindowController implements Initializable {
 
     private double originX;
     private double originY;
-    String nickname;
+    User user;
     private Socket clientSocket;
     DataInputStream dis;
     DataOutputStream dos;
     List<StatusChangeListener> listeners = new ArrayList();
 
-    public MainWindowController(Socket socket, String nickname) throws IOException {
+    public MainWindowController(Socket socket, User user) throws IOException {
         this.clientSocket = socket;
-        this.nickname = nickname;
+        this.user = user;
         dis = new DataInputStream(clientSocket.getInputStream());
         dos = new DataOutputStream(clientSocket.getOutputStream());
     }
@@ -112,12 +115,9 @@ public class MainWindowController implements Initializable {
             System.exit(0);
         });
 
-        anchorPane.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                if (event.getCode() == KeyCode.ENTER) {
-                    sendMessage(txtMessage.getText());
-                }
+        anchorPane.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                sendMessage(txtMessage.getText());
             }
         });
 
@@ -129,7 +129,7 @@ public class MainWindowController implements Initializable {
             }
         });
 
-        txtTitle.setText(txtTitle.getText() + " " + nickname);
+        txtTitle.setText(txtTitle.getText() + " " + user.getNickname());
 
         Thread listener = new Thread(new Runnable() {
             @Override
@@ -147,7 +147,7 @@ public class MainWindowController implements Initializable {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    listUsers.setItems(getUsers(data[1], nickname));
+                                    listUsers.setItems(getUsers(data[1], user.getNickname()));
                                 }
                             });
                         } else if (data[0].equals("private")) {
@@ -157,47 +157,44 @@ public class MainWindowController implements Initializable {
                         Logger.getLogger(MainWindowController.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-
             }
         });
         listener.start();
     }
 
+    private void onStatusChangeEvent(String status) {
+        for (StatusChangeListener listener : listeners) {
+            listener.onStatusChange(status);
+        }
+    }
+
+    public void addListener(StatusChangeListener listener) {
+        if (listener != null) {
+            listeners.add(listener);
+        }
+    }
+
     @FXML
-    void btnSendMessage(ActionEvent event) {
+    void btnSendMessage() {
         sendMessage(txtMessage.getText());
     }
 
     private void sendMessage(String message) {
         String global = "message@all:";
+        Message newMessage = new Message(user, message, Action.GlobalMessage);
+        String serializedMessage = Data.writeMessage(newMessage);
         try {
-            dos.writeUTF(global + message);
+            dos.writeUTF(serializedMessage);
         } catch (IOException ex) {
             Logger.getLogger(MainWindowController.class.getName()).log(Level.SEVERE, null, ex);
         }
-        MessageBox(nickname, message);
+        MessageBox(user.getNickname(), message);
         txtMessage.clear();
     }
 
-    private void sendPrivateMessage(String message) {
-        try {
-            dos.writeUTF(message);
-        } catch (IOException ex) {
-            Logger.getLogger(MainWindowController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 
-    private void MessageBox(String from, String message) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                Text text = new Text(from + ": " + message);
-                text.fontSmoothingTypeProperty().set(FontSmoothingType.GRAY);
-                text.setFont(Font.font("Arial", 14));
-                boxMessages.getChildren().add(text);
-            }
-        });
-    }
+
+
 
     private ObservableList<String> getUsers(String input, String nickname) {
         try {
@@ -223,16 +220,24 @@ public class MainWindowController implements Initializable {
 
     }
 
-    private void onStatusChangeEvent(Action status) {
-        for (StatusChangeListener listener : listeners) {
-            listener.onStatusChange(status);
+    private void sendPrivateMessage(String message) {
+        try {
+            dos.writeUTF(message);
+        } catch (IOException ex) {
+            Logger.getLogger(MainWindowController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public void addListener(StatusChangeListener listener) {
-        if (listener != null) {
-            listeners.add(listener);
-        }
+    private void MessageBox(String from, String message) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                Text text = new Text(from + ": " + message);
+                text.fontSmoothingTypeProperty().set(FontSmoothingType.GRAY);
+                text.setFont(Font.font("Arial", 14));
+                boxMessages.getChildren().add(text);
+            }
+        });
     }
 
 }

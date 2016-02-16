@@ -29,9 +29,9 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
-      <module name="ChatBox" target="1.5" />
-      <module name="ChatBoxServer" target="1.5" />
-      <module name="ChatBoxShared" target="1.5" />
+      <module name="ChatBox" target="1.8" />
+      <module name="ChatBoxServer" target="1.8" />
+      <module name="ChatBoxShared" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

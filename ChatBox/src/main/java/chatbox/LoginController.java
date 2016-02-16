@@ -22,6 +22,9 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import model.Action;
+import model.Data;
+import model.ServerAction;
+import model.User;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -128,10 +131,11 @@ public class LoginController implements Initializable {
         }
         ConnectToServer connection = new ConnectToServer(txtNick.getText());
         connection.addListener(status -> {
-            if (status == Action.UserConnected) {
-                startMainWindow(connection.getClientSocket());
+            ServerAction serverResponse = Data.readServerAction(status);
+            if (serverResponse.getAction() == Action.UserConnected) {
+                startMainWindow(connection.getClientSocket(), serverResponse.getUser());
                 updateStatusLabel("Connected!");
-            } else if (status == Action.NicknameTaken) {
+            } else if (serverResponse.getAction() == Action.NicknameTaken) {
                 updateStatusLabel("Nickname already in use!");
                 startAnimation(loginError, 150);
             } else{
@@ -141,14 +145,14 @@ public class LoginController implements Initializable {
         connection.start();
     }
 
-    private void startMainWindow(Socket socket) {
+    private void startMainWindow(Socket socket, User user) {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/mainWindow.fxml"), ResourceBundle.getBundle("resources/fontawesome"));
                 Stage stage = new Stage();
                 try {
-                    MainWindowController ctrl = new MainWindowController(socket, txtNick.getText());
+                    MainWindowController ctrl = new MainWindowController(socket, user);
                     loader.setController(ctrl);
                     Scene scene = new Scene((Parent) loader.load());
                     stage.initStyle(StageStyle.UNDECORATED);

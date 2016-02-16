@@ -32,7 +32,7 @@ public class AddUser implements Runnable {
     public void run() {
         String response;
         ServerAction userAction;
-        if (repository.addUser(user)) {
+        if (repository.addUser(user, socket)) {
             userAction = new ServerAction(user, Action.UserConnected);
             response = Data.writeServerAction(userAction);
         }

@@ -11,7 +11,6 @@ import javafx.scene.Scene;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import model.User;
 
 public class ChatBox extends Application {
 

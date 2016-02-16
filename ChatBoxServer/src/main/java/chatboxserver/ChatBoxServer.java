@@ -1,8 +1,5 @@
 package chatboxserver;
 
-
-import model.User;
-
 public class ChatBoxServer {
 
     private static int port = 1234;
