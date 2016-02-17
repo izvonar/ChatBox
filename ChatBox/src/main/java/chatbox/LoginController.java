@@ -83,6 +83,7 @@ public class LoginController implements Initializable {
 
         buttonExit.setOnMousePressed((MouseEvent event) -> {
             Platform.exit();
+            System.exit(0);
         });
 
         buttonMinimize.setOnMousePressed((MouseEvent event) -> {
@@ -91,14 +92,21 @@ public class LoginController implements Initializable {
             primaryStage.initStyle(StageStyle.DECORATED);
         });
 
-        anchorPane.setOnKeyPressed(event -> {
+        borderPane.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 startConnection();
             }
         });
 
+        //startMainWindow(new Socket(),new User("test"));
+
         txtNick.setFocusTraversable(false);
         startAnimation(textBubbleRight, 2000);
+    }
+
+    @FXML
+    void btnLogin(ActionEvent event) {
+        startConnection();
     }
 
     private void startAnimation(Node node, double duration) {
@@ -154,7 +162,7 @@ public class LoginController implements Initializable {
                 try {
                     MainWindowController ctrl = new MainWindowController(socket, user);
                     loader.setController(ctrl);
-                    Scene scene = new Scene((Parent) loader.load());
+                    Scene scene = new Scene(loader.load());
                     stage.initStyle(StageStyle.UNDECORATED);
                     stage.setTitle("ChatBox");
                     stage.setScene(scene);
@@ -165,10 +173,5 @@ public class LoginController implements Initializable {
                 }
             }
         });
-    }
-
-    @FXML
-    void btnLogin(ActionEvent event) {
-        startConnection();
     }
 }

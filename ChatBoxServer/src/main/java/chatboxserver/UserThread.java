@@ -1,6 +1,5 @@
 package chatboxserver;
 
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import model.Action;
 import model.Data;
 import model.Message;
@@ -10,7 +9,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.List;
 
 public class UserThread extends Thread {
     private User user;
@@ -47,8 +45,8 @@ public class UserThread extends Thread {
                     SendPrivateMessage(clientMessage);
                 }
             } catch (IOException e) {
-                System.out.println("User " + user.getNickname() + " disconnected!");
-                Repository.removeUser(user);
+                System.out.println("User " + getUser().getNickname() + " disconnected!");
+                Repository.removeUser(getUser());
                 //TODO Notify other users
                 break;
             }
@@ -74,5 +72,9 @@ public class UserThread extends Thread {
 
     public Socket getSocket() {
         return socket;
+    }
+
+    public User getUser() {
+        return user;
     }
 }

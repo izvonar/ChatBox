@@ -5,23 +5,24 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import model.Action;
-import model.Data;
-import model.Message;
-import model.User;
+import model.*;
+
 import java.io.*;
 import java.net.Socket;
 import java.net.URL;
+import java.sql.Struct;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -51,7 +52,7 @@ public class MainWindowController implements Initializable {
     private TextField txtMessage;
 
     @FXML
-    private ListView<String> listUsers;
+    private VBox listUsers;
 
     @FXML
     private VBox boxMessages;
@@ -73,8 +74,10 @@ public class MainWindowController implements Initializable {
     public MainWindowController(Socket socket, User user) throws IOException {
         this.clientSocket = socket;
         this.user = user;
-        dis = new DataInputStream(clientSocket.getInputStream());
-        dos = new DataOutputStream(clientSocket.getOutputStream());
+        if (socket.isConnected()) {
+            dis = new DataInputStream(clientSocket.getInputStream());
+            dos = new DataOutputStream(clientSocket.getOutputStream());
+        }
     }
 
     @Override
@@ -98,7 +101,7 @@ public class MainWindowController implements Initializable {
             System.exit(0);
         });
 
-        anchorPane.setOnKeyPressed(event -> {
+        borderPane.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 sendMessage(txtMessage.getText());
             }
@@ -106,9 +109,9 @@ public class MainWindowController implements Initializable {
 
         listUsers.setOnMouseClicked((MouseEvent event) -> {
             if (event.getClickCount() == 2) {
-                String item = listUsers.getSelectionModel().getSelectedItem();
-                listUsers.getSelectionModel().clearSelection();
-                privateChatWindow(clientSocket, item, this);
+//                String item = listUsers.getSelectionModel().getSelectedItem();
+//                listUsers.getSelectionModel().clearSelection();
+//                privateChatWindow(clientSocket, item, this);
             }
         });
         txtTitle.setText(txtTitle.getText() + " " + user.getNickname());
@@ -143,15 +146,16 @@ public class MainWindowController implements Initializable {
         txtMessage.clear();
     }
 
-    private void startInputListener(Socket socket)
-    {
+    private void startInputListener(Socket socket) {
         try {
             InputListener inputListener = new InputListener(socket);
             inputListener.addListener(message -> {
                 displayMessage(message);
             });
             inputListener.addServerActionListener(serverAction -> {
-               //TODO Server actions, receive users...
+                if (serverAction.getAction() == Action.UsersList) {
+                    addUsers(serverAction);
+                }
             });
             new Thread(inputListener).start();
         } catch (IOException e) {
@@ -162,34 +166,37 @@ public class MainWindowController implements Initializable {
     private void displayMessage(Message message) {
         Platform.runLater(() -> {
             Text text = new Text(message.getSender().getNickname() + ": " + message.getMessage());
-            text.fontSmoothingTypeProperty().set(FontSmoothingType.GRAY);
             text.setFont(Font.font("Arial", 14));
             boxMessages.getChildren().add(text);
         });
     }
 
+    private void createUserPane(User user) {
+        Pane pane = new Pane();
+        pane.setMinHeight(38);
+        pane.setMinWidth(210);
+        pane.getStyleClass().add("paneUser");
+        HBox hBox = new HBox();
+        hBox.setMaxWidth(210);
+        hBox.setPrefHeight(30);
+        hBox.setAlignment(Pos.CENTER_LEFT);
+        hBox.setPadding(new Insets(5, 0, 0, 20));
+        Label username = new Label(user.getNickname());
+        username.setTextFill(Color.WHITE);
+        hBox.getChildren().add(username);
+        pane.getChildren().add(hBox);
+        listUsers.getChildren().add(pane);
+    }
 
-
-
-
-    private ObservableList<String> getUsers(String input, String nickname) {
-        try {
-            byte[] data = Base64.getDecoder().decode(input);
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
-            Object o = ois.readObject();
-            ois.close();
-            List<String> list = (List<String>) o;
-            list.remove(nickname);
-            ObservableList<String> names = FXCollections.observableArrayList(list);
-
-            return names;
-
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(MainWindowController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(MainWindowController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return FXCollections.emptyObservableList();
+    private void addUsers(ServerAction usersAction) {
+        Platform.runLater(() -> {
+            listUsers.getChildren().clear();
+            for (User u : usersAction.getUsers()) {
+                if (!u.getNickname().equals(user.getNickname())) {
+                    createUserPane(u);
+                }
+            }
+        });
     }
 
     private void privateChatWindow(Socket socket, String target, MainWindowController mainCtrl) {

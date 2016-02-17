@@ -26,28 +26,29 @@
 }
 
 #listUsers {
-    -fx-background-color: #333333; 
     -fx-border-style: none;
-    -fx-border-width: 0;
     -fx-background-insets: 0 ;
-
-    -fx-base: #1d1d1d;
-    -fx-control-inner-background: #333333;
-    /*-fx-background-color: #1d1d1d;*/
+    -fx-base: #333333;
+    -fx-padding: 0;
     -fx-table-cell-border-color: transparent;
     -fx-table-header-border-color: transparent;
-    -fx-padding: 5;
+    -fx-background-color: #333333;
+}
+
+.scrollPaneUsers{
+    /*-fx-base: #333333;*/
+    -fx-control-inner-background: #333333;
+    -fx-border-style: none;
+    -fx-background-insets: 0 ;
+    -fx-border-width: 0;
+    -fx-background-color: #333333;
 }
 
 .gridUsers{
     -fx-background-color: #333333;
-    -fx-border-color: transparent;
-    /*-fx-base: #1d1d1d;*/
-    /*-fx-control-inner-background: #1d1d1d;*/
-    /*-fx-background-color: #1d1d1d;*/
-    /*    -fx-table-cell-border-color: transparent;
-        -fx-table-header-border-color: transparent;*/
-    /*-fx-padding: 5;*/
+    /*-fx-border-color: transparent;*/
+    -fx-control-inner-background: #333333;
+    -fx-base: #333333;
 }
 
 .controlBox{
@@ -61,4 +62,11 @@
 .scrollPane{
     -fx-background: #F9F9F9;
     -fx-background-color: transparent;
+}
+
+.paneUser{
+    -fx-border-insets: 3px;
+    -fx-border-style: solid;
+    -fx-border-width: 50%;
+    -fx-border-color: grey;
 }

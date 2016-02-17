@@ -25,6 +25,7 @@ public class Repository {
             UserThread userThread = new UserThread(user, socket);
             userThread.start();
             users.put(user.getNickname(), userThread);
+            sendUsersInformation();
             return true;
         }
         return  false;
@@ -33,9 +34,14 @@ public class Repository {
     public static void removeUser(User user)
     {
         users.remove(user.getNickname());
+        sendUsersInformation();
     }
 
     public static UserThread getUserThread(String nickname) {
         return users.get(nickname);
+    }
+
+    private static void sendUsersInformation() {
+        new UsersInformation().start();
     }
 }

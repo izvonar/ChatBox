@@ -1,10 +1,21 @@
 package model;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class ServerAction implements Serializable {
     private Action action;
     private User user;
+    private List<User> users = null;
+
+    public ServerAction(User user, Action action) {
+
+        this.user = user;
+        this.action = action;
+    }
+
+    public ServerAction() {
+    }
 
     public Action getAction() {
         return action;
@@ -22,9 +33,12 @@ public class ServerAction implements Serializable {
         this.user = user;
     }
 
-    public ServerAction(User user, Action action) {
+    public List<User> getUsers() {
+        return users;
+    }
 
-        this.user = user;
-        this.action = action;
+    public void setUsers(List<User> users) {
+        this.users = users;
+        this.action = Action.UsersList;
     }
 }
