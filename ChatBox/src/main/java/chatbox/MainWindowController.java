@@ -1,10 +1,25 @@
 package chatbox;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontSmoothingType;
+import javafx.scene.text.Text;
+import javafx.stage.Stage;
+import model.Action;
+import model.Data;
+import model.Message;
+import model.User;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
@@ -13,38 +28,6 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontSmoothingType;
-import javafx.scene.text.Text;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import model.Action;
-import model.Data;
-import model.Message;
-import model.User;
 
 
 public class MainWindowController implements Initializable {
@@ -128,38 +111,8 @@ public class MainWindowController implements Initializable {
                 privateChatWindow(clientSocket, item, this);
             }
         });
-
         txtTitle.setText(txtTitle.getText() + " " + user.getNickname());
-
-        Thread listener = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    try {
-                        String inputMessage = dis.readUTF();
-                        System.out.println("PRIMLJENO U MAIN: " + inputMessage);
-                        String[] data = inputMessage.split(":");
-                        if (data[0].equals("message")) {
-                            String from = data[1];
-                            String message = data[2];
-                            MessageBox(from, message);
-                        } else if (data[0].equals("users")) {
-                            Platform.runLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    listUsers.setItems(getUsers(data[1], user.getNickname()));
-                                }
-                            });
-                        } else if (data[0].equals("private")) {
-                            //onStatusChangeEvent(inputMessage);
-                        }
-                    } catch (IOException ex) {
-                        Logger.getLogger(MainWindowController.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
-        });
-        listener.start();
+        startInputListener(clientSocket);
     }
 
     private void onStatusChangeEvent(String status) {
@@ -180,7 +133,6 @@ public class MainWindowController implements Initializable {
     }
 
     private void sendMessage(String message) {
-        String global = "message@all:";
         Message newMessage = new Message(user, message, Action.GlobalMessage);
         String serializedMessage = Data.writeMessage(newMessage);
         try {
@@ -188,8 +140,32 @@ public class MainWindowController implements Initializable {
         } catch (IOException ex) {
             Logger.getLogger(MainWindowController.class.getName()).log(Level.SEVERE, null, ex);
         }
-        MessageBox(user.getNickname(), message);
         txtMessage.clear();
+    }
+
+    private void startInputListener(Socket socket)
+    {
+        try {
+            InputListener inputListener = new InputListener(socket);
+            inputListener.addListener(message -> {
+                displayMessage(message);
+            });
+            inputListener.addServerActionListener(serverAction -> {
+               //TODO Server actions, receive users...
+            });
+            new Thread(inputListener).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void displayMessage(Message message) {
+        Platform.runLater(() -> {
+            Text text = new Text(message.getSender().getNickname() + ": " + message.getMessage());
+            text.fontSmoothingTypeProperty().set(FontSmoothingType.GRAY);
+            text.setFont(Font.font("Arial", 14));
+            boxMessages.getChildren().add(text);
+        });
     }
 
 
@@ -227,17 +203,4 @@ public class MainWindowController implements Initializable {
             Logger.getLogger(MainWindowController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
-    private void MessageBox(String from, String message) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                Text text = new Text(from + ": " + message);
-                text.fontSmoothingTypeProperty().set(FontSmoothingType.GRAY);
-                text.setFont(Font.font("Arial", 14));
-                boxMessages.getChildren().add(text);
-            }
-        });
-    }
-
 }

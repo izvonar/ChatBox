@@ -64,4 +64,20 @@ public class Data {
         String serialized = Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
         return serialized;
     }
+
+    public static Object readObject(String input)
+    {
+        Object o = null;
+        try {
+            byte[] data = Base64.getDecoder().decode(input);
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
+            o = ois.readObject();
+            ois.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return  o;
+    }
 }
