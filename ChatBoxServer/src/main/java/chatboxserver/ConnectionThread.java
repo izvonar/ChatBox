@@ -44,6 +44,12 @@ public class ConnectionThread extends Thread {
                         case UserDisconnect:
                             new Thread(new RemoveUser(clientAction.getUser(), repository)).start();
                             break;
+                        case IsTyping:
+                            Repository.addUserTyping(clientAction.getUser().getNickname());
+                            break;
+                        case StoppedTyping:
+                            Repository.removeUserTyping(clientAction.getUser().getNickname());
+                            break;
                     }
                 }
             } catch (IOException e) {

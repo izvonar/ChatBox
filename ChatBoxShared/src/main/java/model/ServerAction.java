@@ -14,7 +14,8 @@ public class ServerAction implements Serializable {
         this.action = action;
     }
 
-    public ServerAction() {
+    public ServerAction(Action action) {
+        this.action = action;
     }
 
     public Action getAction() {
@@ -39,6 +40,5 @@ public class ServerAction implements Serializable {
 
     public void setUsers(List<User> users) {
         this.users = users;
-        this.action = Action.UsersList;
     }
 }

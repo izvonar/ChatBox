@@ -11,17 +11,19 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UsersInformation extends Thread {
+public class UsersTypingInformation extends Thread {
 
     public void run() {
         List<UserThread> userThreads = new ArrayList();
         userThreads.addAll(Repository.getUsers().values());
+
         List<User> users = new ArrayList();
-        for (UserThread userThread : userThreads) {
-            User user = userThread.getUser();
+        for (String typingUser : Repository.getUsersTyping()) {
+            User user = new User(typingUser);
             users.add(user);
         }
-        ServerAction serverAction = new ServerAction(Action.UsersList);
+
+        ServerAction serverAction = new ServerAction(Action.IsTyping);
         serverAction.setUsers(users);
         String serializedUsers = Data.writeServerAction(serverAction);
 

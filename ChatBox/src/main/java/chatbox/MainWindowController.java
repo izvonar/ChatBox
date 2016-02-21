@@ -1,76 +1,74 @@
 package chatbox;
 
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
+import javafx.animation.FadeTransition;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import model.*;
-
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
-import java.sql.Struct;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
 public class MainWindowController implements Initializable {
 
-    @FXML
-    private AnchorPane anchorPane;
-
-    @FXML
-    private BorderPane borderPane;
-
-    @FXML
-    private Label buttonExit;
-
-    @FXML
-    private Label lblConnectionStatus;
-
-    @FXML
-    private Button btnSend;
-
-    @FXML
-    private TextField txtMessage;
-
-    @FXML
-    private VBox listUsers;
-
-    @FXML
-    private VBox boxMessages;
-
-    @FXML
-    private ScrollPane scrollPane;
-
-    @FXML
-    private Text txtTitle;
-
-    private double originX;
-    private double originY;
     User user;
-    private Socket clientSocket;
     DataInputStream dis;
     DataOutputStream dos;
     List<StatusChangeListener> listeners = new ArrayList();
+    @FXML
+    private AnchorPane anchorPane;
+    @FXML
+    private BorderPane borderPane;
+    @FXML
+    private Label buttonExit;
+    @FXML
+    private Label lblConnectionStatus;
+    @FXML
+    private Label lblUsersTyping;
+    @FXML
+    private Button btnSend;
+    @FXML
+    private TextField txtMessage;
+    @FXML
+    private VBox listUsers;
+    @FXML
+    private VBox boxMessages;
+    @FXML
+    private ScrollPane scrollPaneMessages;
+    @FXML
+    private Text txtTitle;
+    private double originX;
+    private double originY;
+    private Socket clientSocket;
+    Timer keyTypedTime = new Timer();
+    long stoppedTypingDelay = 1000;
+    boolean isTimerRunning = false;
+    boolean enterKeyPressed = false;
 
     public MainWindowController(Socket socket, User user) throws IOException {
         this.clientSocket = socket;
@@ -115,8 +113,54 @@ public class MainWindowController implements Initializable {
 //                privateChatWindow(clientSocket, item, this);
             }
         });
+
+        txtMessage.setOnKeyPressed(event -> {
+            enterKeyPressed = false;
+            if (event.getCode() == KeyCode.ENTER){
+                enterKeyPressed = true;
+            }
+        });
+
+        txtMessage.setOnKeyTyped(event -> {
+            if (enterKeyPressed) {
+                return;
+            }
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    new UserTyping(user, Action.StoppedTyping).start();
+                    isTimerRunning = false;
+                }
+            };
+            if (!isTimerRunning) {
+                startTimer(timerTask);
+            }
+            else {
+                restartTimer(timerTask);
+            }
+        });
         txtTitle.setText(txtTitle.getText() + " " + user.getNickname());
         startInputListener(clientSocket);
+    }
+
+    private void startTimer(TimerTask timerTask) {
+        new UserTyping(user, Action.IsTyping).start();
+        keyTypedTime = new Timer();
+        keyTypedTime.schedule(timerTask, stoppedTypingDelay);
+        isTimerRunning = true;
+    }
+
+    private void restartTimer(TimerTask timerTask) {
+        keyTypedTime.cancel();
+        keyTypedTime = new Timer();
+        keyTypedTime.schedule(timerTask, stoppedTypingDelay);
+    }
+
+    private void stopTimer() {
+        isTimerRunning = false;
+        keyTypedTime.cancel();
+        //keyTypedTime.purge();
+        new UserTyping(user, Action.StoppedTyping).start();
     }
 
     private void onStatusChangeEvent(String status) {
@@ -137,6 +181,7 @@ public class MainWindowController implements Initializable {
     }
 
     private void sendMessage(String message) {
+        stopTimer();
         Message newMessage = new Message(user, message, Action.GlobalMessage);
         String serializedMessage = Data.writeMessage(newMessage);
         try {
@@ -157,6 +202,9 @@ public class MainWindowController implements Initializable {
                 if (serverAction.getAction() == Action.UsersList) {
                     addUsers(serverAction);
                 }
+                else if (serverAction.getAction() == Action.IsTyping){
+                    showTypingUsers(serverAction);
+                }
             });
             new Thread(inputListener).start();
         } catch (IOException e) {
@@ -164,13 +212,48 @@ public class MainWindowController implements Initializable {
         }
     }
 
+    private synchronized void showTypingUsers(ServerAction typingUsers) {
+        Platform.runLater(() -> {
+            lblUsersTyping.setText("");
+            List<User> listUsers = new ArrayList<User>();
+            listUsers.addAll(typingUsers.getUsers());
+            for(User u : listUsers){
+                if (u.getNickname().equals(this.user.getNickname())){
+                    typingUsers.getUsers().remove(u);
+                }
+            }
+            if (typingUsers.getUsers().size() == 0) {
+                return;
+            }
+            String ending = " are typing...";
+            if (typingUsers.getUsers().size() == 1){
+                ending = " is typing...";
+            }
+            StringBuilder sb = new StringBuilder();
+            for (User u : typingUsers.getUsers()){
+                sb.append(u.getNickname());
+                sb.append(", ");
+
+            }
+            String users = sb.substring(0, sb.length() - 2);
+            lblUsersTyping.setText(users + ending);
+        });
+    }
+
     private void displayMessage(Message message) {
         Platform.runLater(() -> {
-//            Text text = new Text(message.getSender().getNickname() + ": " + message.getMessage());
-//            text.setFont(Font.font("Arial", 14));
-//            boxMessages.getChildren().add(text);
-            boxMessages.getChildren().add(createMessageBubble(message));
+            Node messageBubble = createMessageBubble(message);
+            boxMessages.getChildren().add(messageBubble);
+            startAnimation(messageBubble, 300);
+            scrollPaneMessages.setVvalue(1.0d);
         });
+    }
+
+    private void startAnimation(Node node, double duration) {
+        FadeTransition fadeTransition = new FadeTransition(Duration.millis(duration), node);
+        fadeTransition.setFromValue(0.0);
+        fadeTransition.setToValue(1.0);
+        fadeTransition.play();
     }
 
     private void createUserPane(User user) {
@@ -201,33 +284,57 @@ public class MainWindowController implements Initializable {
         });
     }
 
-    private Node createMessageBubble(Message message){
+    private Node createMessageBubble(Message message) {
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+        String time = timeFormat.format(message.getDate());
+        String bubbleType = "messageBubbleOther";
         Pos messageAligment = Pos.CENTER_LEFT;
         Color textColor = Color.BLACK;
-        String bubbleType = "messageBubbleOther";
         Text messageText = new Text(message.getMessage());
+        Text messageTime = new Text(time);
+        HBox root = new HBox();
+        root.setId(message.getSender().getNickname());
+        Pane messageBubble = new Pane();
         double bubbleWidth = messageText.getLayoutBounds().getWidth() + 20;
-        if (message.getSender().getNickname().equals(this.user.getNickname())){
+        if (bubbleWidth >= 200) {
+            messageText.setWrappingWidth(200);
+        }
+        if (message.getSender().getNickname().equals(this.user.getNickname())) {
             messageAligment = Pos.CENTER_RIGHT;
             textColor = Color.WHITE;
             bubbleType = "messageBubble";
+            root.getChildren().add(messageBubble);
+            root.getChildren().add(messageTime);
+            boxMessages.setMargin(root, new Insets(1,0,0,0));
         }
-        if (bubbleWidth >= 200){
-            messageText.setWrappingWidth(200);
+        else{
+            VBox vbox = new VBox();
+            root.setMargin(messageTime, new Insets(0,8,0,0));
+            boxMessages.setMargin(root, new Insets(1,0,0,0));
+            Text sender = new Text(" " + message.getSender().getNickname());
+            sender.setFont(Font.font(10.5));
+            sender.setFill(Color.valueOf("#9197a3"));
+            if (boxMessages.getChildren().size() == 0 || !boxMessages.getChildren().get(boxMessages.getChildren().size() - 1).getId().equals(message.getSender().getNickname())){
+                vbox.getChildren().add(sender);
+                root.setMargin(messageTime, new Insets(13,8,0,0));
+                boxMessages.setMargin(root, new Insets(8,0,0,0));
+            }
+            vbox.getChildren().add(messageBubble);
+            root.getChildren().add(messageTime);
+            root.getChildren().add(vbox);
         }
-        HBox root = new HBox();
         root.setFillHeight(true);
         root.setAlignment(messageAligment);
-        Pane messageBubble = new Pane();
-        root.setMargin(messageBubble, new Insets(0,8,0,8));
+        root.setMargin(messageBubble, new Insets(0, 8, 0, 8));
         messageBubble.getStyleClass().add(bubbleType);
         messageText.setFill(textColor);
         messageText.setFont(Font.font(15));
+        messageTime.setFont(Font.font(10));
         HBox textContainer = new HBox(messageText);
-        textContainer.setPadding(new Insets(3.3, 6, 3.3, 6));
+        textContainer.setPadding(new Insets(3.6, 9, 3.6, 9));
         textContainer.setFillHeight(true);
         messageBubble.getChildren().add(textContainer);
-        root.getChildren().add(messageBubble);
+
         return root;
     }
 

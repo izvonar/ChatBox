@@ -7,5 +7,7 @@ public enum Action {
     NicknameTaken,
     ServerOffline,
     GlobalMessage,
-    UsersList
+    UsersList,
+    IsTyping,
+    StoppedTyping
 }

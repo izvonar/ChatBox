@@ -104,7 +104,7 @@
                   <Insets bottom="10.0" left="5.0" right="5.0" top="5.0" />
                </GridPane.margin>
             </Button>
-            <Label text="ivan is typing..." GridPane.rowIndex="1" GridPane.valignment="BASELINE">
+            <Label fx:id="lblUsersTyping" GridPane.rowIndex="1" GridPane.valignment="BASELINE">
                <GridPane.margin>
                   <Insets left="5.0" />
                </GridPane.margin>
@@ -112,14 +112,14 @@
                   <Font size="9.0" />
                </font>
             </Label>
-            <ScrollPane styleClass="scrollPaneMessages" GridPane.columnSpan="2147483647">
+            <ScrollPane fx:id="scrollPaneMessages" prefHeight="500.0" prefWidth="534.0" styleClass="scrollPaneMessages" GridPane.columnSpan="2147483647">
                <GridPane.margin>
                   <Insets />
                </GridPane.margin>
                <content>
-                  <VBox fx:id="boxMessages" alignment="BOTTOM_LEFT" minHeight="368.0" prefWidth="517.0" spacing="8.0">
+                  <VBox fx:id="boxMessages" alignment="BOTTOM_LEFT" minHeight="368.0" prefWidth="510.0">
                      <padding>
-                        <Insets bottom="10.0" />
+                        <Insets bottom="10.0" left="7.0" />
                      </padding>
                   </VBox>
                </content>
