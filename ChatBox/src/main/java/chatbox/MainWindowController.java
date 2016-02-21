@@ -1,6 +1,5 @@
 package chatbox;
 
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -14,13 +13,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import model.*;
 import java.io.DataInputStream;
@@ -65,7 +64,7 @@ public class MainWindowController implements Initializable {
     private double originX;
     private double originY;
     private Socket clientSocket;
-    Timer keyTypedTime = new Timer();
+    Timer keyTypedTime;
     long stoppedTypingDelay = 1000;
     boolean isTimerRunning = false;
     boolean enterKeyPressed = false;
@@ -139,20 +138,21 @@ public class MainWindowController implements Initializable {
                 restartTimer(timerTask);
             }
         });
+
         txtTitle.setText(txtTitle.getText() + " " + user.getNickname());
         startInputListener(clientSocket);
     }
 
     private void startTimer(TimerTask timerTask) {
         new UserTyping(user, Action.IsTyping).start();
-        keyTypedTime = new Timer();
+        keyTypedTime = new Timer(true);
         keyTypedTime.schedule(timerTask, stoppedTypingDelay);
         isTimerRunning = true;
     }
 
     private void restartTimer(TimerTask timerTask) {
         keyTypedTime.cancel();
-        keyTypedTime = new Timer();
+        keyTypedTime = new Timer(true);
         keyTypedTime.schedule(timerTask, stoppedTypingDelay);
     }
 
@@ -206,7 +206,9 @@ public class MainWindowController implements Initializable {
                     showTypingUsers(serverAction);
                 }
             });
-            new Thread(inputListener).start();
+            Thread listener = new Thread(inputListener);
+            listener.setDaemon(true);
+            listener.start();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -4,7 +4,6 @@ import model.Action;
 import model.Data;
 import model.ServerAction;
 import model.User;
-
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;

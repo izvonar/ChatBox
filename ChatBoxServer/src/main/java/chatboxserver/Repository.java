@@ -1,8 +1,6 @@
 package chatboxserver;
 
 import model.User;
-
-import java.io.Console;
 import java.net.Socket;
 import java.util.*;
 
@@ -62,11 +60,6 @@ public class Repository {
         {
             getUsersTyping().add(user);
             sendUsersTypingInformation();
-            System.out.println("\n---ADD----USERS TYPING--NO: " + usersTyping.size() + "------");
-            for (String u : usersTyping){
-                System.out.println(u);
-            }
-            System.out.println("\n---------------------------------------------");
             return true;
         }
         return  false;
@@ -76,10 +69,5 @@ public class Repository {
     {
         getUsersTyping().remove(user);
         sendUsersTypingInformation();
-        System.out.println("\n---REM----USERS TYPING--NO: " + usersTyping.size() + "------");
-        for (String u : usersTyping){
-            System.out.println(u);
-        }
-        System.out.println("\n---------------------------------------------");
     }
 }
