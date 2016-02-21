@@ -2,11 +2,11 @@ package chatbox;
 
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -19,7 +19,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import model.*;
 import java.io.DataInputStream;
@@ -39,6 +38,10 @@ public class MainWindowController implements Initializable {
     DataInputStream dis;
     DataOutputStream dos;
     List<StatusChangeListener> listeners = new ArrayList();
+    Timer keyTypedTime;
+    long stoppedTypingDelay = 1000;
+    boolean isTimerRunning = false;
+    boolean enterKeyPressed = false;
     @FXML
     private AnchorPane anchorPane;
     @FXML
@@ -64,10 +67,6 @@ public class MainWindowController implements Initializable {
     private double originX;
     private double originY;
     private Socket clientSocket;
-    Timer keyTypedTime;
-    long stoppedTypingDelay = 1000;
-    boolean isTimerRunning = false;
-    boolean enterKeyPressed = false;
 
     public MainWindowController(Socket socket, User user) throws IOException {
         this.clientSocket = socket;
@@ -96,7 +95,6 @@ public class MainWindowController implements Initializable {
 
         buttonExit.setOnMousePressed((MouseEvent event) -> {
             Platform.exit();
-            System.exit(0);
         });
 
         borderPane.setOnKeyPressed(event -> {
@@ -115,7 +113,7 @@ public class MainWindowController implements Initializable {
 
         txtMessage.setOnKeyPressed(event -> {
             enterKeyPressed = false;
-            if (event.getCode() == KeyCode.ENTER){
+            if (event.getCode() == KeyCode.ENTER) {
                 enterKeyPressed = true;
             }
         });
@@ -133,11 +131,12 @@ public class MainWindowController implements Initializable {
             };
             if (!isTimerRunning) {
                 startTimer(timerTask);
-            }
-            else {
+            } else {
                 restartTimer(timerTask);
             }
         });
+
+
 
         txtTitle.setText(txtTitle.getText() + " " + user.getNickname());
         startInputListener(clientSocket);
@@ -159,7 +158,6 @@ public class MainWindowController implements Initializable {
     private void stopTimer() {
         isTimerRunning = false;
         keyTypedTime.cancel();
-        //keyTypedTime.purge();
         new UserTyping(user, Action.StoppedTyping).start();
     }
 
@@ -201,8 +199,7 @@ public class MainWindowController implements Initializable {
             inputListener.addServerActionListener(serverAction -> {
                 if (serverAction.getAction() == Action.UsersList) {
                     addUsers(serverAction);
-                }
-                else if (serverAction.getAction() == Action.IsTyping){
+                } else if (serverAction.getAction() == Action.IsTyping) {
                     showTypingUsers(serverAction);
                 }
             });
@@ -219,8 +216,8 @@ public class MainWindowController implements Initializable {
             lblUsersTyping.setText("");
             List<User> listUsers = new ArrayList<User>();
             listUsers.addAll(typingUsers.getUsers());
-            for(User u : listUsers){
-                if (u.getNickname().equals(this.user.getNickname())){
+            for (User u : listUsers) {
+                if (u.getNickname().equals(this.user.getNickname())) {
                     typingUsers.getUsers().remove(u);
                 }
             }
@@ -228,11 +225,11 @@ public class MainWindowController implements Initializable {
                 return;
             }
             String ending = " are typing...";
-            if (typingUsers.getUsers().size() == 1){
+            if (typingUsers.getUsers().size() == 1) {
                 ending = " is typing...";
             }
             StringBuilder sb = new StringBuilder();
-            for (User u : typingUsers.getUsers()){
+            for (User u : typingUsers.getUsers()) {
                 sb.append(u.getNickname());
                 sb.append(", ");
 
@@ -247,8 +244,8 @@ public class MainWindowController implements Initializable {
             Node messageBubble = createMessageBubble(message);
             boxMessages.getChildren().add(messageBubble);
             startAnimation(messageBubble, 300);
-            scrollPaneMessages.setVvalue(1.0d);
         });
+
     }
 
     private void startAnimation(Node node, double duration) {
@@ -260,6 +257,7 @@ public class MainWindowController implements Initializable {
 
     private void createUserPane(User user) {
         Pane pane = new Pane();
+        pane.setCursor(Cursor.HAND);
         pane.setMinHeight(38);
         pane.setMinWidth(210);
         pane.getStyleClass().add("paneUser");
@@ -272,6 +270,10 @@ public class MainWindowController implements Initializable {
         username.setTextFill(Color.WHITE);
         hBox.getChildren().add(username);
         pane.getChildren().add(hBox);
+        pane.setOnMouseDragOver(event -> {
+            username.setTextFill(Color.RED);
+
+        });
         listUsers.getChildren().add(pane);
     }
 
@@ -307,19 +309,18 @@ public class MainWindowController implements Initializable {
             bubbleType = "messageBubble";
             root.getChildren().add(messageBubble);
             root.getChildren().add(messageTime);
-            boxMessages.setMargin(root, new Insets(1,0,0,0));
-        }
-        else{
+            boxMessages.setMargin(root, new Insets(1, 0, 0, 0));
+        } else {
             VBox vbox = new VBox();
-            root.setMargin(messageTime, new Insets(0,8,0,0));
-            boxMessages.setMargin(root, new Insets(1,0,0,0));
+            root.setMargin(messageTime, new Insets(0, 8, 0, 0));
+            boxMessages.setMargin(root, new Insets(1, 0, 0, 0));
             Text sender = new Text(" " + message.getSender().getNickname());
             sender.setFont(Font.font(10.5));
             sender.setFill(Color.valueOf("#9197a3"));
-            if (boxMessages.getChildren().size() == 0 || !boxMessages.getChildren().get(boxMessages.getChildren().size() - 1).getId().equals(message.getSender().getNickname())){
+            if (boxMessages.getChildren().size() == 0 || !boxMessages.getChildren().get(boxMessages.getChildren().size() - 1).getId().equals(message.getSender().getNickname())) {
                 vbox.getChildren().add(sender);
-                root.setMargin(messageTime, new Insets(13,8,0,0));
-                boxMessages.setMargin(root, new Insets(8,0,0,0));
+                root.setMargin(messageTime, new Insets(13, 8, 0, 0));
+                boxMessages.setMargin(root, new Insets(8, 0, 0, 0));
             }
             vbox.getChildren().add(messageBubble);
             root.getChildren().add(messageTime);
@@ -336,7 +337,6 @@ public class MainWindowController implements Initializable {
         textContainer.setPadding(new Insets(3.6, 9, 3.6, 9));
         textContainer.setFillHeight(true);
         messageBubble.getChildren().add(textContainer);
-
         return root;
     }
 

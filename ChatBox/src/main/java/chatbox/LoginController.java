@@ -81,7 +81,6 @@ public class LoginController implements Initializable {
 
         buttonExit.setOnMousePressed((MouseEvent event) -> {
             Platform.exit();
-            System.exit(0);
         });
 
         buttonMinimize.setOnMousePressed((MouseEvent event) -> {

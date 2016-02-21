@@ -72,6 +72,11 @@
     -fx-border-color: grey;
 }
 
+.paneUser:hover{
+    -fx-border-color: black;
+    /*-fx-background-color: white;*/
+}
+
 .scrollPaneMessages{
     -fx-base: #F9F9F9;
     /*-fx-control-inner-background: #F9F9F9;*/
