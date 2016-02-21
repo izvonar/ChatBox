@@ -9,7 +9,8 @@
     -fx-border-style: solid;
     -fx-border-width: 0.5;
     -fx-border-radius: 2px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 0.0, 0.0);
+    /*-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 0.0, 0.0);*/
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 0);
 }
 
 #buttonExit{
@@ -69,4 +70,23 @@
     -fx-border-style: solid;
     -fx-border-width: 50%;
     -fx-border-color: grey;
+}
+
+.scrollPaneMessages{
+    -fx-base: #F9F9F9;
+    /*-fx-control-inner-background: #F9F9F9;*/
+    -fx-border-style: none;
+    -fx-background-insets: 0 ;
+    -fx-border-width: 0;
+    /*-fx-background-color: #F9F9F9;*/
+}
+
+.messageBubble{
+    -fx-background-color: #0084FF;
+    -fx-background-radius: 12;
+}
+
+.messageBubbleOther{
+    -fx-background-color: #F1F0F0;
+    -fx-background-radius: 12;
 }

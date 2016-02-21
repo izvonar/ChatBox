@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
@@ -165,9 +166,10 @@ public class MainWindowController implements Initializable {
 
     private void displayMessage(Message message) {
         Platform.runLater(() -> {
-            Text text = new Text(message.getSender().getNickname() + ": " + message.getMessage());
-            text.setFont(Font.font("Arial", 14));
-            boxMessages.getChildren().add(text);
+//            Text text = new Text(message.getSender().getNickname() + ": " + message.getMessage());
+//            text.setFont(Font.font("Arial", 14));
+//            boxMessages.getChildren().add(text);
+            boxMessages.getChildren().add(createMessageBubble(message));
         });
     }
 
@@ -197,6 +199,36 @@ public class MainWindowController implements Initializable {
                 }
             }
         });
+    }
+
+    private Node createMessageBubble(Message message){
+        Pos messageAligment = Pos.CENTER_LEFT;
+        Color textColor = Color.BLACK;
+        String bubbleType = "messageBubbleOther";
+        Text messageText = new Text(message.getMessage());
+        double bubbleWidth = messageText.getLayoutBounds().getWidth() + 20;
+        if (message.getSender().getNickname().equals(this.user.getNickname())){
+            messageAligment = Pos.CENTER_RIGHT;
+            textColor = Color.WHITE;
+            bubbleType = "messageBubble";
+        }
+        if (bubbleWidth >= 200){
+            messageText.setWrappingWidth(200);
+        }
+        HBox root = new HBox();
+        root.setFillHeight(true);
+        root.setAlignment(messageAligment);
+        Pane messageBubble = new Pane();
+        root.setMargin(messageBubble, new Insets(0,8,0,8));
+        messageBubble.getStyleClass().add(bubbleType);
+        messageText.setFill(textColor);
+        messageText.setFont(Font.font(15));
+        HBox textContainer = new HBox(messageText);
+        textContainer.setPadding(new Insets(3.3, 6, 3.3, 6));
+        textContainer.setFillHeight(true);
+        messageBubble.getChildren().add(textContainer);
+        root.getChildren().add(messageBubble);
+        return root;
     }
 
     private void privateChatWindow(Socket socket, String target, MainWindowController mainCtrl) {
